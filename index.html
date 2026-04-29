@@ -395,7 +395,7 @@ textarea{resize:vertical;min-height:60px;}
       <div class="valor-lbl">Valor comercial estimado</div>
       <div class="valor-val" id="valor-comercial-display">$0</div>
     </div>
-    <div class="field"><label>Valor comercial definitivo ($) — ajuste manual</label><input type="number" id="valor-comercial-final" placeholder="1980000"></div>
+    <div class="field"><label>Valor comercial definitivo ($) — ajuste manual</label><input type="number" id="valor-comercial-final" placeholder="1980000" oninput="actualizarLetra()"></div>
     <div class="field"><label>Monto con letra</label><input type="text" id="valor-letra" placeholder="UN MILLÓN NOVECIENTOS OCHENTA MIL PESOS 00/100 M.N."></div>
     <div class="field"><label>Criterio de ponderación</label><textarea id="criterio" placeholder="En función y ponderación de los valores obtenidos por el método comparativo de mercado y físico o directo, se concluye que el valor comercial para el inmueble valuado es igual al valor de mercado en números cerrados."></textarea></div>
   </div>
@@ -523,6 +523,56 @@ function calcValorComercial(){
   var prom=Math.round(vals.reduce(function(s,v){return s+v;},0)/vals.length);
   document.getElementById("valor-comercial-display").textContent=fmt(prom);
   if(!g("valor-comercial-final")) document.getElementById("valor-comercial-final").value=prom||"";
+  actualizarLetra();
+}
+
+// ─── NÚMERO A LETRAS ─────────────────────────────────────────────────────────
+function numeroALetras(n){
+  if(!n||isNaN(n)||n<=0) return "";
+  n=Math.round(parseFloat(n));
+  var u=["","UN","DOS","TRES","CUATRO","CINCO","SEIS","SIETE","OCHO","NUEVE",
+         "DIEZ","ONCE","DOCE","TRECE","CATORCE","QUINCE","DIECISÉIS","DIECISIETE",
+         "DIECIOCHO","DIECINUEVE"];
+  var d=["","","VEINTE","TREINTA","CUARENTA","CINCUENTA","SESENTA","SETENTA","OCHENTA","NOVENTA"];
+  var c=["","CIENTO","DOSCIENTOS","TRESCIENTOS","CUATROCIENTOS","QUINIENTOS",
+         "SEISCIENTOS","SETECIENTOS","OCHOCIENTOS","NOVECIENTOS"];
+  function gg(n){
+    if(n===0) return "";
+    if(n<20) return u[n];
+    if(n<100){
+      var d1=Math.floor(n/10), u1=n%10;
+      if(u1===0) return d[d1];
+      if(d1===2) return "VEINTI"+u[u1];
+      return d[d1]+" Y "+u[u1];
+    }
+    if(n===100) return "CIEN";
+    var c1=Math.floor(n/100), r=n%100;
+    return c[c1]+(r>0?" "+gg(r):"");
+  }
+  function miles(n){
+    if(n===0) return "";
+    if(n<1000) return gg(n);
+    var m=Math.floor(n/1000), r=n%1000;
+    var sm=(m===1?"MIL":(gg(m)+" MIL"));
+    return sm+(r>0?" "+gg(r):"");
+  }
+  function millones(n){
+    if(n<1000000) return miles(n);
+    var m=Math.floor(n/1000000), r=n%1000000;
+    var sm=(m===1?"UN MILLÓN":(gg(m)+" MILLONES"));
+    return sm+(r>0?" "+miles(r):"");
+  }
+  var entero=Math.floor(n);
+  var cent=Math.round((n-entero)*100);
+  var letra=millones(entero);
+  return letra+" PESOS "+(cent>0?(cent+"/100"):("00/100"))+" M.N.";
+}
+
+function actualizarLetra(){
+  var val=document.getElementById("valor-comercial-final").value;
+  if(val&&!isNaN(val)&&parseFloat(val)>0){
+    document.getElementById("valor-letra").value=numeroALetras(parseFloat(val));
+  }
 }
 
 // ─── PDF ──────────────────────────────────────────────────────────────────────
