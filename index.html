@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Avalúo Comercial — Arq. Alvaro Chapa Villarreal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --bg:#F5F4F0;--surface:#FFF;--border:#E2E0D8;--border2:#CECCC2;
+  --text1:#1A1916;--text2:#5A5850;--text3:#9A9890;
+  --accent:#1A3A2A;--accent2:#2D6348;--accent3:#3D8A60;
+  --gold:#C9A227;--gold-bg:#FDF8EC;
+  --success:#2A7A4B;--suc-bg:#EAF4EE;
+  --radius:12px;--radius-sm:8px;
+  --shadow:0 2px 12px rgba(0,0,0,0.06);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text1);min-height:100vh;padding-bottom:48px;}
+
+.app-header{background:var(--accent);padding:18px 20px 14px;position:sticky;top:0;z-index:100;}
+.header-inner{max-width:700px;margin:0 auto;display:flex;align-items:center;gap:12px;}
+.avatar{width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-family:'DM Serif Display',serif;font-size:16px;color:#fff;flex-shrink:0;border:1.5px solid rgba(255,255,255,0.22);}
+.header-name{font-size:14px;font-weight:600;color:#fff;line-height:1.2;}
+.header-sub{font-size:11px;color:rgba(255,255,255,0.65);margin-top:2px;}
+.header-badge{margin-left:auto;font-size:10px;font-weight:500;background:rgba(255,255,255,0.14);color:rgba(255,255,255,0.85);padding:3px 10px;border-radius:20px;white-space:nowrap;}
+
+.main{max-width:700px;margin:0 auto;padding:14px 13px 0;}
+.card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);margin-bottom:11px;box-shadow:var(--shadow);overflow:hidden;}
+.card-head{padding:12px 16px 0;font-size:10px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;color:var(--text3);display:flex;align-items:center;gap:8px;}
+.card-num{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.card-body{padding:11px 16px 16px;}
+
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;}
+.field{margin-bottom:10px;}.field:last-child{margin-bottom:0;}
+label{display:block;font-size:11px;color:var(--text2);margin-bottom:3px;font-weight:500;text-transform:uppercase;letter-spacing:0.04em;}
+input[type=text],input[type=number],select,textarea{width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--bg);color:var(--text1);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color 0.15s;}
+input:focus,select:focus,textarea:focus{border-color:var(--accent3);}
+select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235A5850' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;}
+textarea{resize:vertical;min-height:60px;}
+
+.chk-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.chk-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);}
+.chk-item input{width:13px;height:13px;accent-color:var(--accent2);}
+
+.foto-zona{border:2px dashed var(--border2);border-radius:var(--radius-sm);padding:16px;text-align:center;cursor:pointer;transition:border-color 0.15s;position:relative;min-height:80px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;}
+.foto-zona:hover{border-color:var(--accent3);}
+.foto-zona input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.foto-zona-lbl{font-size:11px;color:var(--text3);}
+.foto-zona-icon{font-size:20px;}
+.foto-preview{width:100%;max-height:140px;object-fit:cover;border-radius:var(--radius-sm);display:none;}
+.fotos-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
+.foto-item{position:relative;}
+.foto-item img{width:100%;height:100px;object-fit:cover;border-radius:var(--radius-sm);border:1px solid var(--border);}
+.foto-item-lbl{font-size:10px;color:var(--text3);margin-top:3px;text-align:center;}
+.foto-del{position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.5);color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;}
+
+.valor-box{background:var(--gold-bg);border:1.5px solid var(--gold);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:10px;}
+.valor-lbl{font-size:10px;font-weight:600;color:var(--gold);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;}
+.valor-val{font-size:22px;font-weight:700;color:var(--accent);font-family:'DM Serif Display',serif;}
+
+.divider{height:1px;background:var(--border);margin:10px 0;}
+
+.btn-pdf{width:100%;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);padding:14px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity 0.15s;margin-top:4px;box-shadow:0 4px 14px rgba(26,58,42,0.22);}
+.btn-pdf:active{opacity:0.85;}
+.note{font-size:11px;color:var(--text3);line-height:1.6;margin-top:6px;}
+.app-footer{text-align:center;font-size:11px;color:var(--text3);margin-top:18px;padding:0 13px;}
+@media(max-width:420px){.row2,.row3{grid-template-columns:1fr;}.chk-grid{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-inner">
+    <div class="avatar">AC</div>
+    <div>
+      <div class="header-name">Arq. Alvaro Chapa Villarreal</div>
+      <div class="header-sub">📱 WhatsApp 81 2289 4100 · Cédula Prof. 2531610</div>
+    </div>
+    <div class="header-badge">Avalúo Comercial</div>
+  </div>
+</header>
+
+<main class="main">
+
+<!-- 1. ANTECEDENTES -->
+<div class="card">
+  <div class="card-head"><div class="card-num">1</div> Antecedentes</div>
+  <div class="card-body">
+    <div class="row2">
+      <div class="field"><label>Solicitante</label><input type="text" id="solicitante" placeholder="Nombre del solicitante"></div>
+      <div class="field"><label>Propietario</label><input type="text" id="propietario" placeholder="Nombre del propietario"></div>
+    </div>
+    <div class="field"><label>Inmueble que se valúa</label>
+      <select id="tipo-inmueble">
+        <option>Casa Habitación</option><option>Departamento</option><option>Local Comercial</option>
+        <option>Oficina</option><option>Bodega / Nave Industrial</option><option>Terreno</option>
+        <option>Edificio</option><option>Rancho / Predio Rústico</option>
+      </select>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Régimen de propiedad</label>
+        <select id="regimen"><option>Propiedad Privada</option><option>Condominio</option><option>Ejidal</option></select>
+      </div>
+      <div class="field"><label>Clave catastral</label><input type="text" id="catastral" placeholder="Ej. 06-248-036"></div>
+    </div>
+    <div class="field"><label>Objeto del avalúo</label>
+      <select id="objeto">
+        <option>Conocer el Valor Comercial</option><option>Garantía Hipotecaria</option>
+        <option>Compraventa</option><option>Liquidación de Sociedad</option>
+        <option>Declaración Fiscal</option><option>Seguro</option><option>Arrendamiento</option>
+      </select>
+    </div>
+    <div class="field"><label>Ubicación del inmueble</label><textarea id="ubicacion" placeholder="Calle, número, entre calles, colonia, municipio, estado, C.P."></textarea></div>
+    <div class="row3">
+      <div class="field"><label>Código postal</label><input type="text" id="cp" placeholder="67193"></div>
+      <div class="field"><label>Fecha de visita</label><input type="text" id="fecha-visita"></div>
+      <div class="field"><label>Fecha del avalúo</label><input type="text" id="fecha-avaluo"></div>
+    </div>
+    <div class="row3">
+      <div class="field"><label>Longitud</label><input type="text" id="longitud" placeholder="-100.175098"></div>
+      <div class="field"><label>Latitud</label><input type="text" id="latitud" placeholder="25.64985"></div>
+      <div class="field"><label>Altitud</label><input type="text" id="altitud" placeholder="459 m"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FOTO PRINCIPAL -->
+<div class="card">
+  <div class="card-head"><div class="card-num">📷</div> Fotografía principal del inmueble</div>
+  <div class="card-body">
+    <div class="foto-zona" id="zona-principal">
+      <input type="file" accept="image/*" onchange="cargarFotoPrincipal(this)">
+      <div class="foto-zona-icon">📸</div>
+      <div class="foto-zona-lbl">Toca para agregar foto principal (fachada)</div>
+    </div>
+    <img id="prev-principal" class="foto-preview" style="margin-top:8px;width:100%;max-height:200px;">
+  </div>
+</div>
+
+<!-- 2. CARACTERÍSTICAS URBANAS -->
+<div class="card">
+  <div class="card-head"><div class="card-num">2</div> Características urbanas</div>
+  <div class="card-body">
+    <div class="row2">
+      <div class="field"><label>Clasificación de la zona</label>
+        <select id="clasificacion"><option>Habitacional</option><option>Comercial</option><option>Industrial</option><option>Mixta</option><option>Rural</option></select>
+      </div>
+      <div class="field"><label>Tipo de construcción dominante</label><input type="text" id="tipo-dom" placeholder="Ej. Casas habitación de dos niveles"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Índice de saturación</label>
+        <select id="saturacion"><option>95%</option><option>90%</option><option>80%</option><option>70%</option><option>60%</option><option>50%</option></select>
+      </div>
+      <div class="field"><label>Uso de suelo</label>
+        <select id="uso-suelo"><option>Habitacional</option><option>Comercial</option><option>Industrial</option><option>Mixto</option><option>Agrícola</option></select>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Contaminación ambiental</label>
+        <select id="contaminacion"><option>Normal</option><option>Ninguna Aparente</option><option>Moderada</option><option>Alta</option></select>
+      </div>
+      <div class="field"><label>Población</label>
+        <select id="poblacion"><option>Media</option><option>Alta</option><option>Baja</option></select>
+      </div>
+    </div>
+    <div class="field"><label>Vías de acceso e importancia</label><textarea id="vias" placeholder="Avenidas principales de acceso al inmueble..."></textarea></div>
+    <div class="divider"></div>
+    <p style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">Equipamiento urbano y servicios</p>
+    <div class="chk-grid">
+      <label class="chk-item"><input type="checkbox" id="s1" checked> Agua potable</label>
+      <label class="chk-item"><input type="checkbox" id="s2" checked> Gas natural</label>
+      <label class="chk-item"><input type="checkbox" id="s3" checked> Hospitales</label>
+      <label class="chk-item"><input type="checkbox" id="s4" checked> Nomenclatura</label>
+      <label class="chk-item"><input type="checkbox" id="s5" checked> Drenaje</label>
+      <label class="chk-item"><input type="checkbox" id="s6" checked> Guarniciones</label>
+      <label class="chk-item"><input type="checkbox" id="s7" checked> C. Comerciales</label>
+      <label class="chk-item"><input type="checkbox" id="s8" checked> Rec. Basura</label>
+      <label class="chk-item"><input type="checkbox" id="s9" checked> Electrificación</label>
+      <label class="chk-item"><input type="checkbox" id="s10" checked> Banquetas</label>
+      <label class="chk-item"><input type="checkbox" id="s11" checked> Bancos</label>
+      <label class="chk-item"><input type="checkbox" id="s12" checked> Vigilancia</label>
+      <label class="chk-item"><input type="checkbox" id="s13" checked> Alumbrado</label>
+      <label class="chk-item"><input type="checkbox" id="s14" checked> Pavimento</label>
+      <label class="chk-item"><input type="checkbox" id="s15" checked> Templos</label>
+      <label class="chk-item"><input type="checkbox" id="s16" checked> Señalización</label>
+      <label class="chk-item"><input type="checkbox" id="s17" checked> Teléfono</label>
+      <label class="chk-item"><input type="checkbox" id="s18" checked> Escuelas</label>
+      <label class="chk-item"><input type="checkbox" id="s19" checked> Transporte</label>
+    </div>
+  </div>
+</div>
+
+<!-- 3. TERRENO -->
+<div class="card">
+  <div class="card-head"><div class="card-num">3</div> Terreno — medidas y colindancias</div>
+  <div class="card-body">
+    <div class="row2">
+      <div class="field"><label>Superficie de terreno (m²)</label><input type="number" id="sup-terreno" placeholder="96.00"></div>
+      <div class="field"><label>Topografía</label>
+        <select id="topografia"><option>Plana, configuración regular</option><option>Leve pendiente</option><option>Pendiente pronunciada</option><option>Irregular</option></select>
+      </div>
+    </div>
+    <p style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin:8px 0 6px;">Medidas y colindancias</p>
+    <div class="row2">
+      <div class="field"><label>Norte — distancia (m)</label><input type="text" id="col-n-dist" placeholder="6.00"></div>
+      <div class="field"><label>Norte — colindancia</label><input type="text" id="col-n-col" placeholder="Con propiedad particular"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Sur — distancia (m)</label><input type="text" id="col-s-dist" placeholder="6.00"></div>
+      <div class="field"><label>Sur — colindancia</label><input type="text" id="col-s-col" placeholder="Con calle Misión Santa Mónica"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Este — distancia (m)</label><input type="text" id="col-e-dist" placeholder="16.00"></div>
+      <div class="field"><label>Este — colindancia</label><input type="text" id="col-e-col" placeholder="Con propiedad particular"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Oeste — distancia (m)</label><input type="text" id="col-o-dist" placeholder="16.00"></div>
+      <div class="field"><label>Oeste — colindancia</label><input type="text" id="col-o-col" placeholder="Con propiedad particular"></div>
+    </div>
+    <div class="divider"></div>
+    <div class="row2">
+      <div class="field"><label>Área total de construcción (m²)</label><input type="number" id="sup-const" placeholder="161.00"></div>
+      <div class="field"><label>Características panorámicas</label><input type="text" id="panoramicas" placeholder="Construcciones propias del lugar"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Servidumbres / restricciones</label><input type="text" id="servidumbres" placeholder="Ninguna aparente"></div>
+      <div class="field"><label>Consideraciones adicionales</label><input type="text" id="consideraciones" placeholder="Ninguna aparente"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. DESCRIPCIÓN GENERAL -->
+<div class="card">
+  <div class="card-head"><div class="card-num">4</div> Descripción general del inmueble</div>
+  <div class="card-body">
+    <div class="field"><label>Tipo de construcción</label><textarea id="desc-construccion" placeholder="Descripción detallada del inmueble: planta baja, planta alta, espacios..."></textarea></div>
+    <div class="row2">
+      <div class="field"><label>Clasificación</label><input type="text" id="clasificacion-const" placeholder="Moderna, Calidad Buena"></div>
+      <div class="field"><label>Número de niveles</label><input type="number" id="niveles" placeholder="2" min="1" max="20"></div>
+    </div>
+    <div class="row3">
+      <div class="field"><label>Edad aprox. (años)</label><input type="number" id="edad" placeholder="25"></div>
+      <div class="field"><label>Vida útil remanente (años)</label><input type="number" id="vida-util" placeholder="45"></div>
+      <div class="field"><label>Unidades rentables</label><input type="number" id="unidades" placeholder="1"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Estado de conservación</label>
+        <select id="conservacion"><option>Excelente</option><option>Bueno</option><option>Regular</option><option>Malo</option></select>
+      </div>
+      <div class="field"><label>Calidad del proyecto</label>
+        <select id="calidad"><option>Bueno para su uso</option><option>Excelente</option><option>Regular</option><option>Económico</option></select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 5. ELEMENTOS DE CONSTRUCCIÓN -->
+<div class="card">
+  <div class="card-head"><div class="card-num">5</div> Elementos de la construcción</div>
+  <div class="card-body">
+    <p style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">A — Obra negra / gruesa</p>
+    <div class="row2">
+      <div class="field"><label>Cimentación</label><input type="text" id="e-ciment" placeholder="Corrida y aislada, firmes de concreto armado"></div>
+      <div class="field"><label>Estructura</label><input type="text" id="e-estruct" placeholder="Castillos y contracimientos de concreto armado"></div>
+      <div class="field"><label>Muros</label><input type="text" id="e-muros" placeholder="Block de concreto, castillos y cerramientos"></div>
+      <div class="field"><label>Entrepisos</label><input type="text" id="e-entre" placeholder="Concreto armado y aligerada"></div>
+      <div class="field"><label>Techos</label><input type="text" id="e-techos" placeholder="Concreto armado y aligerada"></div>
+      <div class="field"><label>Azoteas</label><input type="text" id="e-azoteas" placeholder="Impermeabilización asfáltica"></div>
+    </div>
+    <div class="divider"></div>
+    <p style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">B — Revestimientos y acabados</p>
+    <div class="row2">
+      <div class="field"><label>Aplanados</label><input type="text" id="e-aplana" placeholder="Zarpeo y yeso interior"></div>
+      <div class="field"><label>Plafones</label><input type="text" id="e-plafo" placeholder="Aplanado de yeso aparente"></div>
+      <div class="field"><label>Pisos</label><input type="text" id="e-pisos" placeholder="Loseta cerámica"></div>
+      <div class="field"><label>Pintura</label><input type="text" id="e-pintura" placeholder="Vinílica interior y exterior"></div>
+    </div>
+    <div class="divider"></div>
+    <p style="font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">C — Carpintería · D — Instalaciones · E — Fachadas</p>
+    <div class="row2">
+      <div class="field"><label>Puertas</label><input type="text" id="e-puertas" placeholder="Madera tipo tambor"></div>
+      <div class="field"><label>Muebles de baño</label><input type="text" id="e-banio" placeholder="Lavabo, inodoro cerámicos"></div>
+      <div class="field"><label>Instalación hidráulica</label><input type="text" id="e-hidro" placeholder="Tubería de cobre y EPVC oculta"></div>
+      <div class="field"><label>Instalación eléctrica</label><input type="text" id="e-elec" placeholder="Oculta, poliducto 1/2&quot;"></div>
+      <div class="field"><label>Fachadas</label><input type="text" id="e-fachadas" placeholder="Zarpeo, afine y pintura"></div>
+      <div class="field"><label>Muebles de cocina</label><input type="text" id="e-cocina" placeholder="Madera"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 6. CONSIDERACIONES PREVIAS -->
+<div class="card">
+  <div class="card-head"><div class="card-num">6</div> Consideraciones previas al avalúo</div>
+  <div class="card-body">
+    <div class="field"><label>Metodología utilizada</label>
+      <select id="metodologia">
+        <option>Método físico + Método de mercado</option>
+        <option>Método físico + Capitalización de rentas + Mercado</option>
+        <option>Solo método de mercado</option>
+        <option>Solo método físico</option>
+      </select>
+    </div>
+    <div class="field"><label>Observaciones generales</label><textarea id="observaciones" placeholder="Condiciones al momento de la visita, información proporcionada, limitaciones del avalúo..."></textarea></div>
+  </div>
+</div>
+
+<!-- 7. MERCADO / COMPARABLES -->
+<div class="card">
+  <div class="card-head"><div class="card-num">7</div> Enfoque comparativo de mercado</div>
+  <div class="card-body">
+    <p style="font-size:11px;color:var(--text2);margin-bottom:10px;">Ingresa hasta 3 comparables de mercado</p>
+    <div id="comparables-lista">
+      <div class="comparable-item" style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:8px;">
+        <p style="font-size:11px;font-weight:600;color:var(--accent2);margin-bottom:8px;">Comparable 1</p>
+        <div class="row2">
+          <div class="field"><label>Tipo inmueble</label><input type="text" class="c-tipo" placeholder="Casa Habitación"></div>
+          <div class="field"><label>Ubicación / zona</label><input type="text" class="c-ubic" placeholder="Misión Santa Fe"></div>
+          <div class="field"><label>Superficie terreno (m²)</label><input type="number" class="c-sterr" placeholder="96"></div>
+          <div class="field"><label>Superficie construida (m²)</label><input type="number" class="c-scons" placeholder="130"></div>
+          <div class="field"><label>Edad (años)</label><input type="number" class="c-edad" placeholder="25"></div>
+          <div class="field"><label>Estado de conservación</label><select class="c-cons"><option>Bueno</option><option>Excelente</option><option>Regular</option><option>Malo</option></select></div>
+          <div class="field"><label>Valor de oferta ($)</label><input type="number" class="c-valor" placeholder="1820000"></div>
+          <div class="field"><label>Fuente</label><select class="c-fuente"><option>Propiedades.com</option><option>Inmuebles24</option><option>Mercado libre</option><option>Referencia directa</option></select></div>
+        </div>
+      </div>
+      <div class="comparable-item" style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:8px;">
+        <p style="font-size:11px;font-weight:600;color:var(--accent2);margin-bottom:8px;">Comparable 2</p>
+        <div class="row2">
+          <div class="field"><label>Tipo inmueble</label><input type="text" class="c-tipo" placeholder="Casa Habitación"></div>
+          <div class="field"><label>Ubicación / zona</label><input type="text" class="c-ubic" placeholder="Misión de Fundadores"></div>
+          <div class="field"><label>Superficie terreno (m²)</label><input type="number" class="c-sterr" placeholder="96"></div>
+          <div class="field"><label>Superficie construida (m²)</label><input type="number" class="c-scons" placeholder="125"></div>
+          <div class="field"><label>Edad (años)</label><input type="number" class="c-edad" placeholder="20"></div>
+          <div class="field"><label>Estado de conservación</label><select class="c-cons"><option>Bueno</option><option>Excelente</option><option>Regular</option><option>Malo</option></select></div>
+          <div class="field"><label>Valor de oferta ($)</label><input type="number" class="c-valor" placeholder="1850000"></div>
+          <div class="field"><label>Fuente</label><select class="c-fuente"><option>Propiedades.com</option><option>Inmuebles24</option><option>Mercado libre</option><option>Referencia directa</option></select></div>
+        </div>
+      </div>
+      <div class="comparable-item" style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:8px;">
+        <p style="font-size:11px;font-weight:600;color:var(--accent2);margin-bottom:8px;">Comparable 3</p>
+        <div class="row2">
+          <div class="field"><label>Tipo inmueble</label><input type="text" class="c-tipo" placeholder="Casa Habitación"></div>
+          <div class="field"><label>Ubicación / zona</label><input type="text" class="c-ubic" placeholder="Misión de Fundadores"></div>
+          <div class="field"><label>Superficie terreno (m²)</label><input type="number" class="c-sterr" placeholder="96"></div>
+          <div class="field"><label>Superficie construida (m²)</label><input type="number" class="c-scons" placeholder="110"></div>
+          <div class="field"><label>Edad (años)</label><input type="number" class="c-edad" placeholder="23"></div>
+          <div class="field"><label>Estado de conservación</label><select class="c-cons"><option>Bueno</option><option>Excelente</option><option>Regular</option><option>Malo</option></select></div>
+          <div class="field"><label>Valor de oferta ($)</label><input type="number" class="c-valor" placeholder="1465000"></div>
+          <div class="field"><label>Fuente</label><select class="c-fuente"><option>Propiedades.com</option><option>Inmuebles24</option><option>Mercado libre</option><option>Referencia directa</option></select></div>
+        </div>
+      </div>
+    </div>
+    <div class="row2" style="margin-top:8px;">
+      <div class="field"><label>Valor/m² mercado aplicado ($)</label><input type="number" id="valor-m2-mer" placeholder="12270"></div>
+      <div class="field"><label>Valor de mercado ($)</label><input type="number" id="valor-mercado" placeholder="1975000"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 8. VALOR FÍSICO -->
+<div class="card">
+  <div class="card-head"><div class="card-num">8</div> Valor físico o directo</div>
+  <div class="card-body">
+    <div class="row3">
+      <div class="field"><label>Valor de terreno ($)</label><input type="number" id="val-terreno" placeholder="480000"></div>
+      <div class="field"><label>Valor de construcciones ($)</label><input type="number" id="val-const" placeholder="1404000"></div>
+      <div class="field"><label>Valor accesorios ($)</label><input type="number" id="val-acces" placeholder="81000"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Valor de calle ($/m²)</label><input type="number" id="val-calle" placeholder="5000"></div>
+      <div class="field"><label>Valor físico total ($)</label><input type="number" id="val-fisico" placeholder="1965000"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 9-11. RESUMEN Y CONCLUSIÓN -->
+<div class="card">
+  <div class="card-head"><div class="card-num">9</div> Resumen, ponderación y conclusión</div>
+  <div class="card-body">
+    <div class="row2">
+      <div class="field"><label>Valor físico o directo ($)</label><input type="number" id="res-fisico" placeholder="1965000" oninput="calcValorComercial()"></div>
+      <div class="field"><label>Valor de mercado ($)</label><input type="number" id="res-mercado" placeholder="1975000" oninput="calcValorComercial()"></div>
+    </div>
+    <div class="field"><label>Valor por capitalización de rentas ($)</label>
+      <select id="res-rentas" onchange="calcValorComercial()">
+        <option value="0">No Aplica</option><option value="1">Aplica — capturar abajo</option>
+      </select>
+    </div>
+    <div class="field" id="campo-rentas" style="display:none;"><label>Monto capitalización de rentas ($)</label><input type="number" id="res-rentas-val" placeholder="0" oninput="calcValorComercial()"></div>
+
+    <div class="valor-box" style="margin-top:12px;">
+      <div class="valor-lbl">Valor comercial estimado</div>
+      <div class="valor-val" id="valor-comercial-display">$0</div>
+    </div>
+    <div class="field"><label>Valor comercial definitivo ($) — ajuste manual</label><input type="number" id="valor-comercial-final" placeholder="1980000"></div>
+    <div class="field"><label>Monto con letra</label><input type="text" id="valor-letra" placeholder="UN MILLÓN NOVECIENTOS OCHENTA MIL PESOS 00/100 M.N."></div>
+    <div class="field"><label>Criterio de ponderación</label><textarea id="criterio" placeholder="En función y ponderación de los valores obtenidos por el método comparativo de mercado y físico o directo, se concluye que el valor comercial para el inmueble valuado es igual al valor de mercado en números cerrados."></textarea></div>
+  </div>
+</div>
+
+<!-- 12. REPORTE FOTOGRÁFICO -->
+<div class="card">
+  <div class="card-head"><div class="card-num">12</div> Reporte fotográfico</div>
+  <div class="card-body">
+    <div class="fotos-grid" id="fotos-grid">
+      <div class="foto-item">
+        <div class="foto-zona" style="height:100px;">
+          <input type="file" accept="image/*" onchange="cargarFoto(this,'f1','Vista de acceso al fraccionamiento')">
+          <div class="foto-zona-icon" style="font-size:16px;">📸</div>
+        </div>
+        <img id="f1" class="foto-preview" style="height:100px;display:none;">
+        <div class="foto-item-lbl">Vista de acceso</div>
+      </div>
+      <div class="foto-item">
+        <div class="foto-zona" style="height:100px;">
+          <input type="file" accept="image/*" onchange="cargarFoto(this,'f2','Vista de la zona')">
+          <div class="foto-zona-icon" style="font-size:16px;">📸</div>
+        </div>
+        <img id="f2" class="foto-preview" style="height:100px;display:none;">
+        <div class="foto-item-lbl">Vista de la zona</div>
+      </div>
+      <div class="foto-item">
+        <div class="foto-zona" style="height:100px;">
+          <input type="file" accept="image/*" onchange="cargarFoto(this,'f3','Vista de sala')">
+          <div class="foto-zona-icon" style="font-size:16px;">📸</div>
+        </div>
+        <img id="f3" class="foto-preview" style="height:100px;display:none;">
+        <div class="foto-item-lbl">Sala</div>
+      </div>
+      <div class="foto-item">
+        <div class="foto-zona" style="height:100px;">
+          <input type="file" accept="image/*" onchange="cargarFoto(this,'f4','Vista de comedor')">
+          <div class="foto-zona-icon" style="font-size:16px;">📸</div>
+        </div>
+        <img id="f4" class="foto-preview" style="height:100px;display:none;">
+        <div class="foto-item-lbl">Comedor</div>
+      </div>
+      <div class="foto-item">
+        <div class="foto-zona" style="height:100px;">
+          <input type="file" accept="image/*" onchange="cargarFoto(this,'f5','Vista de cocina')">
+          <div class="foto-zona-icon" style="font-size:16px;">📸</div>
+        </div>
+        <img id="f5" class="foto-preview" style="height:100px;display:none;">
+        <div class="foto-item-lbl">Cocina</div>
+      </div>
+      <div class="foto-item">
+        <div class="foto-zona" style="height:100px;">
+          <input type="file" accept="image/*" onchange="cargarFoto(this,'f6','Vista de recámara')">
+          <div class="foto-zona-icon" style="font-size:16px;">📸</div>
+        </div>
+        <img id="f6" class="foto-preview" style="height:100px;display:none;">
+        <div class="foto-item-lbl">Recámara</div>
+      </div>
+    </div>
+    <p class="note">Puedes agregar más fotos subiendo hasta 6 imágenes. Todas aparecerán en el PDF.</p>
+  </div>
+</div>
+
+<button class="btn-pdf" onclick="exportarPDF()">
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 2h6l4 4v8a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="white" stroke-width="1.2" fill="none"/><path d="M10 2v4h4M5 9h6M5 11.5h4" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg>
+  Generar Avalúo PDF — Tamaño Carta
+</button>
+
+<p class="note" style="text-align:center;">El PDF incluye portada, 12 secciones y reporte fotográfico en formato carta contemporáneo.</p>
+
+<div class="app-footer">
+  Avalúo Comercial · Arq. Alvaro Chapa Villarreal · Cédula Prof. 2531610<br>
+  📱 WhatsApp 81 2289 4100 · Monterrey, México 2026
+</div>
+
+</main>
+
+<script>
+var DESPACHO   = "Arq. Alvaro Chapa Villarreal";
+var CEDULA     = "Cédula Prof. 2531610";
+var TELEFONO   = "81 2289 4100";
+var DOMICILIO  = "Monterrey, Nuevo León, México";
+var MAESTRIA   = "Maestría en Valuación Inmobiliaria";
+
+var fotoDataURLs = {principal:null, f1:null, f2:null, f3:null, f4:null, f5:null, f6:null};
+var fotoLabels   = {f1:"Vista de acceso",f2:"Vista de la zona",f3:"Sala",f4:"Comedor",f5:"Cocina",f6:"Recámara"};
+
+// Fechas de hoy
+var hoy = new Date().toLocaleDateString("es-MX",{day:"2-digit",month:"2-digit",year:"numeric"});
+document.getElementById("fecha-visita").value = hoy;
+document.getElementById("fecha-avaluo").value = hoy;
+
+function g(id){ return document.getElementById(id)?document.getElementById(id).value.trim():""; }
+function fmt(n){ if(!n)return"$0";return"$"+parseFloat(n).toLocaleString("es-MX",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+function cargarFotoPrincipal(input){
+  if(!input.files||!input.files[0]) return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    fotoDataURLs.principal=e.target.result;
+    var prev=document.getElementById("prev-principal");
+    prev.src=e.target.result; prev.style.display="block";
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function cargarFoto(input,id,label){
+  if(!input.files||!input.files[0]) return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    fotoDataURLs[id]=e.target.result;
+    var img=document.getElementById(id);
+    img.src=e.target.result; img.style.display="block";
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+function calcValorComercial(){
+  var fis=parseFloat(g("res-fisico"))||0;
+  var mer=parseFloat(g("res-mercado"))||0;
+  var ren=document.getElementById("res-rentas").value==="1"?(parseFloat(g("res-rentas-val"))||0):0;
+  document.getElementById("campo-rentas").style.display=
+    document.getElementById("res-rentas").value==="1"?"block":"none";
+  var vals=[fis,mer]; if(ren>0) vals.push(ren);
+  var prom=Math.round(vals.reduce(function(s,v){return s+v;},0)/vals.length);
+  document.getElementById("valor-comercial-display").textContent=fmt(prom);
+  if(!g("valor-comercial-final")) document.getElementById("valor-comercial-final").value=prom||"";
+}
+
+// ─── PDF ──────────────────────────────────────────────────────────────────────
+function exportarPDF(){
+  var {jsPDF}=window.jspdf;
+  // Carta = 215.9 x 279.4 mm
+  var doc=new jsPDF({unit:"mm",format:"letter"});
+  var W=215.9, H=279.4, mg=15, cw=W-mg*2;
+  var pg=1;
+
+  function nuevaPagina(){
+    doc.addPage("letter");pg++;
+    // Encabezado mini en páginas siguientes
+    doc.setFillColor(26,58,42); doc.rect(0,0,W,10,"F");
+    doc.setTextColor(255,255,255); doc.setFontSize(7); doc.setFont("helvetica","normal");
+    doc.text("AVALÚO COMERCIAL · "+DESPACHO+" · "+CEDULA,mg,7);
+    doc.text("Pág. "+pg,W-mg,7,{align:"right"});
+    return 16;
+  }
+
+  function chkY(y,needed){if(y+needed>H-18){y=nuevaPagina();}return y;}
+
+  function seccion(doc,y,num,titulo){
+    y=chkY(y,12);
+    doc.setFillColor(26,58,42); doc.roundedRect(mg,y,cw,8,1,1,"F");
+    doc.setTextColor(255,255,255); doc.setFontSize(8); doc.setFont("helvetica","bold");
+    doc.text(num+" "+titulo.toUpperCase(),mg+4,y+5.5);
+    return y+10;
+  }
+
+  function fila(doc,y,label,valor,shade){
+    y=chkY(y,7);
+    if(shade){doc.setFillColor(243,247,244);doc.rect(mg,y,cw,6.5,"F");}
+    doc.setTextColor(80,80,80); doc.setFontSize(7); doc.setFont("helvetica","bold");
+    doc.text(label,mg+2,y+4.5);
+    doc.setFont("helvetica","normal"); doc.setTextColor(30,30,30);
+    var lines=doc.splitTextToSize(valor||"—",(cw*0.55));
+    doc.text(lines,mg+(cw*0.43),y+4.5);
+    return y+(lines.length>1?lines.length*4:6.5);
+  }
+
+  function fila2(doc,y,items){
+    // items = [{l,v},{l,v}] - dos columnas
+    y=chkY(y,7);
+    var hw=cw/2-2;
+    doc.setFillColor(243,247,244); doc.rect(mg,y,cw,6.5,"F");
+    items.forEach(function(it,i){
+      var x=mg+(i*cw/2);
+      doc.setTextColor(80,80,80);doc.setFontSize(6.5);doc.setFont("helvetica","bold");
+      doc.text(it.l,x+2,y+3);
+      doc.setFont("helvetica","normal");doc.setTextColor(30,30,30);doc.setFontSize(7);
+      doc.text(doc.splitTextToSize(it.v||"—",hw-2)[0],x+2,y+6);
+    });
+    return y+7;
+  }
+
+  function addImg(doc,dataURL,x,y,maxW,maxH){
+    if(!dataURL) return 0;
+    try{
+      var img=new Image(); img.src=dataURL;
+      var ratio=Math.min(maxW/img.width, maxH/img.height);
+      var iw=img.width*ratio, ih=img.height*ratio;
+      doc.addImage(dataURL,"JPEG",x,y,iw,ih);
+      return ih;
+    }catch(e){return 0;}
+  }
+
+  // ─── PORTADA ───────────────────────────────────────────────────────────────
+  // Barra superior verde
+  doc.setFillColor(26,58,42); doc.rect(0,0,W,40,"F");
+  // Acento dorado
+  doc.setFillColor(201,162,39); doc.rect(0,38,W,2,"F");
+
+  doc.setTextColor(255,255,255); doc.setFontSize(22); doc.setFont("helvetica","bold");
+  doc.text("AVALÚO COMERCIAL",mg,18);
+  doc.setFontSize(10); doc.setFont("helvetica","normal");
+  doc.text("Valuación Inmobiliaria Paramétrica",mg,25);
+  doc.setFontSize(8);
+  doc.text(DESPACHO+"  ·  "+CEDULA,mg,32);
+  doc.text(MAESTRIA+"  ·  "+TELEFONO,mg,37);
+  doc.text(g("fecha-avaluo")||hoy,W-mg,32,{align:"right"});
+  doc.text(DOMICILIO,W-mg,37,{align:"right"});
+
+  var y=48;
+
+  // Foto principal
+  if(fotoDataURLs.principal){
+    var ih=addImg(doc,fotoDataURLs.principal,mg,y,cw,65);
+    if(ih>0) y+=ih+4;
+  }
+
+  // Resumen de datos portada
+  y=chkY(y,30);
+  var datosPortada=[
+    {l:"Solicitante",v:g("solicitante")},{l:"Propietario",v:g("propietario")},
+    {l:"Inmueble",v:g("tipo-inmueble")},{l:"Objeto del avalúo",v:g("objeto")},
+    {l:"Ubicación",v:g("ubicacion")},{l:"C.P.",v:g("cp")},
+    {l:"Fecha del avalúo",v:g("fecha-avaluo")},{l:"Clave catastral",v:g("catastral")},
+  ];
+  datosPortada.forEach(function(d,i){ y=fila(doc,y,d.l,d.v,i%2===0); });
+
+  // Resumen de valores (caja dorada)
+  y+=4; y=chkY(y,28);
+  doc.setFillColor(253,248,236); doc.roundedRect(mg,y,cw,26,2,2,"F");
+  doc.setDrawColor(201,162,39); doc.setLineWidth(0.5); doc.roundedRect(mg,y,cw,26,2,2,"S");
+  doc.setTextColor(26,58,42); doc.setFontSize(9); doc.setFont("helvetica","bold");
+  doc.text("RESUMEN DE VALORES",mg+4,y+7);
+  doc.setFontSize(8); doc.setFont("helvetica","normal"); doc.setTextColor(80,80,80);
+  doc.text("Valor Físico o Directo:",mg+4,y+14);
+  doc.text("Valor por Capitalización de Rentas:",mg+4,y+19);
+  doc.text("Valor Comercial:",mg+4,y+24);
+  doc.setFont("helvetica","bold"); doc.setTextColor(26,58,42);
+  doc.text(fmt(g("val-fisico")||g("res-fisico")),W-mg-4,y+14,{align:"right"});
+  doc.text(document.getElementById("res-rentas").value==="1"?fmt(g("res-rentas-val")):"No Aplica",W-mg-4,y+19,{align:"right"});
+  doc.setFontSize(10);
+  doc.text(fmt(g("valor-comercial-final")),W-mg-4,y+24,{align:"right"});
+  y+=30;
+
+  // ─── SECCIÓN 1: ANTECEDENTES ───────────────────────────────────────────────
+  y=seccion(doc,y,"1.","Antecedentes");
+  var ant=[
+    {l:"Solicitante",v:g("solicitante")},{l:"Propietario",v:g("propietario")},
+    {l:"Valuador",v:DESPACHO+" · "+MAESTRIA},{l:"Cédula",v:CEDULA},
+    {l:"Fecha de visita",v:g("fecha-visita")},{l:"Fecha del avalúo",v:g("fecha-avaluo")},
+    {l:"Inmueble que se valúa",v:g("tipo-inmueble")},{l:"Régimen de propiedad",v:g("regimen")},
+    {l:"Objeto del avalúo",v:g("objeto")},{l:"Clave catastral",v:g("catastral")},
+    {l:"Ubicación del inmueble",v:g("ubicacion")},{l:"Código postal",v:g("cp")},
+    {l:"Coordenadas",v:"Longitud: "+g("longitud")+"  Latitud: "+g("latitud")+"  Altitud: "+g("altitud")},
+  ];
+  ant.forEach(function(d,i){ y=fila(doc,y,d.l,d.v,i%2===0); });
+
+  // ─── SECCIÓN 2: CARACTERÍSTICAS URBANAS ───────────────────────────────────
+  y+=4; y=seccion(doc,y,"2.","Características urbanas");
+  var urb=[
+    {l:"Clasificación de la zona",v:g("clasificacion")},{l:"Tipo de construcción dominante",v:g("tipo-dom")},
+    {l:"Índice de saturación",v:g("saturacion")},{l:"Uso de suelo",v:g("uso-suelo")},
+    {l:"Contaminación ambiental",v:g("contaminacion")},{l:"Población",v:g("poblacion")},
+    {l:"Vías de acceso",v:g("vias")},
+  ];
+  urb.forEach(function(d,i){ y=fila(doc,y,d.l,d.v,i%2===0); });
+  // Servicios
+  y=chkY(y,8); y+=2;
+  doc.setFontSize(6.5); doc.setFont("helvetica","bold"); doc.setTextColor(26,58,42);
+  doc.text("EQUIPAMIENTO URBANO Y SERVICIOS:",mg+2,y+4); y+=6;
+  var servicios=["Agua Potable","Gas Natural","Hospitales","Nomenclatura","Drenaje","Guarniciones","C. Comerciales","Rec. Basura","Electrificación","Banquetas","Bancos","Vigilancia","Alumbrado","Pavimento","Templos","Señalización","Teléfono","Escuelas","Transporte Público"];
+  var ids=["s1","s2","s3","s4","s5","s6","s7","s8","s9","s10","s11","s12","s13","s14","s15","s16","s17","s18","s19"];
+  var servStr=servicios.filter(function(_,i){return document.getElementById(ids[i])&&document.getElementById(ids[i]).checked;}).join(" · ");
+  doc.setFont("helvetica","normal"); doc.setTextColor(50,50,50); doc.setFontSize(7);
+  var sLines=doc.splitTextToSize(servStr,cw-4);
+  doc.text(sLines,mg+2,y+4); y+=sLines.length*4+4;
+
+  // ─── SECCIÓN 3: TERRENO ────────────────────────────────────────────────────
+  y=seccion(doc,y,"3.","Terreno — medidas y colindancias");
+  y=fila2(doc,y,[{l:"Superficie de terreno",v:g("sup-terreno")+" m²"},{l:"Topografía",v:g("topografia")}]);
+  y+=2;
+  // Tabla colindancias
+  y=chkY(y,32);
+  var colH=["Rumbo","Distancia","Colindancia"];
+  var colW=[20,25,cw-45];
+  doc.setFillColor(26,58,42); doc.rect(mg,y,cw,6,"F");
+  doc.setTextColor(255,255,255); doc.setFontSize(7); doc.setFont("helvetica","bold");
+  var cx=mg;
+  colH.forEach(function(h,i){doc.text(h,cx+2,y+4.5);cx+=colW[i];});
+  y+=6;
+  var colRows=[
+    ["Norte",g("col-n-dist")+" m",g("col-n-col")],
+    ["Sur",g("col-s-dist")+" m",g("col-s-col")],
+    ["Este",g("col-e-dist")+" m",g("col-e-col")],
+    ["Oeste",g("col-o-dist")+" m",g("col-o-col")],
+  ];
+  colRows.forEach(function(r,i){
+    y=chkY(y,6);
+    if(i%2===0){doc.setFillColor(243,247,244);doc.rect(mg,y,cw,6,"F");}
+    doc.setTextColor(50,50,50); doc.setFontSize(7); doc.setFont("helvetica","normal");
+    var cx2=mg;
+    r.forEach(function(cell,ci){
+      doc.text(doc.splitTextToSize(cell||"—",colW[ci]-2)[0],cx2+2,y+4.5);
+      cx2+=colW[ci];
+    });
+    y+=6;
+  });
+  y+=2;
+  var ter2=[
+    {l:"Área total de construcción",v:(g("sup-const")||"—")+" m²"},{l:"Características panorámicas",v:g("panoramicas")},
+    {l:"Servidumbres/restricciones",v:g("servidumbres")},{l:"Consideraciones adicionales",v:g("consideraciones")},
+  ];
+  ter2.forEach(function(d,i){ y=fila(doc,y,d.l,d.v,i%2===0); });
+
+  // ─── SECCIÓN 4: DESCRIPCIÓN ────────────────────────────────────────────────
+  y=seccion(doc,y,"4.","Descripción general del inmueble");
+  var desc=[
+    {l:"Uso actual",v:g("tipo-inmueble")},{l:"Tipo de construcción",v:g("desc-construccion")},
+    {l:"Clasificación",v:g("clasificacion-const")},{l:"Número de niveles",v:g("niveles")},
+    {l:"Edad aproximada",v:g("edad")+" años"},{l:"Vida útil remanente",v:g("vida-util")+" años"},
+    {l:"Estado de conservación",v:g("conservacion")},{l:"Calidad del proyecto",v:g("calidad")},
+    {l:"Unidades rentables",v:g("unidades")},
+  ];
+  desc.forEach(function(d,i){ y=fila(doc,y,d.l,d.v,i%2===0); });
+
+  // ─── SECCIÓN 5: ELEMENTOS ──────────────────────────────────────────────────
+  y=seccion(doc,y,"5.","Elementos de la construcción");
+  var elem=[
+    {l:"Cimentación",v:g("e-ciment")},{l:"Estructura",v:g("e-estruct")},
+    {l:"Muros",v:g("e-muros")},{l:"Entrepisos",v:g("e-entre")},
+    {l:"Techos",v:g("e-techos")},{l:"Azoteas",v:g("e-azoteas")},
+    {l:"Aplanados",v:g("e-aplana")},{l:"Plafones",v:g("e-plafo")},
+    {l:"Pisos",v:g("e-pisos")},{l:"Pintura",v:g("e-pintura")},
+    {l:"Puertas",v:g("e-puertas")},{l:"Muebles de baño",v:g("e-banio")},
+    {l:"Inst. hidráulica",v:g("e-hidro")},{l:"Inst. eléctrica",v:g("e-elec")},
+    {l:"Fachadas",v:g("e-fachadas")},{l:"Muebles de cocina",v:g("e-cocina")},
+  ];
+  elem.forEach(function(d,i){ y=fila(doc,y,d.l,d.v,i%2===0); });
+
+  // ─── SECCIÓN 6: CONSIDERACIONES ───────────────────────────────────────────
+  y=seccion(doc,y,"6.","Consideraciones previas al avalúo");
+  y=fila(doc,y,"Metodología",g("metodologia"),true);
+  if(g("observaciones")){
+    y=chkY(y,20);
+    doc.setFontSize(7); doc.setFont("helvetica","bold"); doc.setTextColor(80,80,80);
+    doc.text("Observaciones:",mg+2,y+5); y+=6;
+    doc.setFont("helvetica","normal"); doc.setTextColor(50,50,50);
+    var obsLines=doc.splitTextToSize(g("observaciones"),cw-4);
+    doc.text(obsLines,mg+2,y); y+=obsLines.length*4+4;
+  }
+
+  // ─── SECCIÓN 7: MERCADO ───────────────────────────────────────────────────
+  y=seccion(doc,y,"7.","Enfoque comparativo de mercado");
+  var comps=document.querySelectorAll(".comparable-item");
+  // Encabezado tabla
+  y=chkY(y,8);
+  var cH2=["#","Tipo","Zona","Sup.Terr","Sup.Const","Edad","Edo.Cons.","Valor oferta","Fuente"];
+  var cW2=[6,25,30,18,18,12,18,30,20];
+  doc.setFillColor(45,99,72); doc.rect(mg,y,cw,6,"F");
+  doc.setTextColor(255,255,255); doc.setFontSize(6); doc.setFont("helvetica","bold");
+  var xcmp=mg;
+  cH2.forEach(function(h,i){doc.text(h,xcmp+1,y+4.5);xcmp+=cW2[i];});
+  y+=6;
+  comps.forEach(function(comp,ci){
+    y=chkY(y,7);
+    var tipo=comp.querySelector(".c-tipo").value||"—";
+    var ubic=comp.querySelector(".c-ubic").value||"—";
+    var st=comp.querySelector(".c-sterr").value||"—";
+    var sc=comp.querySelector(".c-scons").value||"—";
+    var ed=comp.querySelector(".c-edad").value||"—";
+    var co=comp.querySelector(".c-cons").value||"—";
+    var val=comp.querySelector(".c-valor").value;
+    var fue=comp.querySelector(".c-fuente").value||"—";
+    if(ci%2===0){doc.setFillColor(243,247,244);doc.rect(mg,y,cw,7,"F");}
+    doc.setTextColor(50,50,50); doc.setFontSize(6.5); doc.setFont("helvetica","normal");
+    var row2=[String(ci+1),tipo,ubic,st,sc,ed,co,val?fmt(val):"—",fue];
+    var xrow=mg;
+    row2.forEach(function(cell,ri){
+      doc.text(doc.splitTextToSize(cell,cW2[ri]-2)[0],xrow+1,y+4.5);
+      xrow+=cW2[ri];
+    });
+    y+=7;
+  });
+  y+=3;
+  y=fila2(doc,y,[{l:"Valor/m² mercado aplicado",v:fmt(g("valor-m2-mer"))},{l:"Valor de mercado",v:fmt(g("valor-mercado"))}]);
+
+  // ─── SECCIÓN 8: VALOR FÍSICO ───────────────────────────────────────────────
+  y=seccion(doc,y,"8.","Valor físico o directo");
+  var vf=[
+    {l:"Valor del terreno",v:fmt(g("val-terreno"))},{l:"Valor de las construcciones",v:fmt(g("val-const"))},
+    {l:"Valor de accesorios/complementarios",v:fmt(g("val-acces"))},{l:"Valor de calle ($/m²)",v:fmt(g("val-calle"))},
+  ];
+  vf.forEach(function(d,i){ y=fila(doc,y,d.l,d.v,i%2===0); });
+  // Total físico destacado
+  y=chkY(y,10);
+  doc.setFillColor(26,58,42); doc.rect(mg,y,cw,8,"F");
+  doc.setTextColor(255,255,255); doc.setFontSize(8); doc.setFont("helvetica","bold");
+  doc.text("VALOR FÍSICO O DIRECTO (A+B+C):",mg+4,y+5.5);
+  doc.text(fmt(g("val-fisico")),W-mg-4,y+5.5,{align:"right"});
+  y+=10;
+
+  // ─── SECCIONES 9-11: RESUMEN Y CONCLUSIÓN ─────────────────────────────────
+  y=seccion(doc,y,"9-11.","Resumen, ponderación y conclusión");
+  y=chkY(y,36);
+  // Cuadro resumen
+  doc.setFillColor(243,247,244); doc.roundedRect(mg,y,cw,22,2,2,"F");
+  doc.setTextColor(80,80,80); doc.setFontSize(7.5); doc.setFont("helvetica","normal");
+  doc.text("Valor Físico o Directo:",mg+4,y+7); doc.setFont("helvetica","bold"); doc.setTextColor(26,58,42);
+  doc.text(fmt(g("res-fisico")||g("val-fisico")),W-mg-4,y+7,{align:"right"});
+  doc.setFont("helvetica","normal"); doc.setTextColor(80,80,80);
+  doc.text("Valor por Capitalización de Rentas:",mg+4,y+13);
+  doc.setFont("helvetica","bold"); doc.setTextColor(26,58,42);
+  doc.text(document.getElementById("res-rentas").value==="1"?fmt(g("res-rentas-val")):"No Aplica",W-mg-4,y+13,{align:"right"});
+  doc.setFont("helvetica","normal"); doc.setTextColor(80,80,80);
+  doc.text("Valor de Mercado:",mg+4,y+19);
+  doc.setFont("helvetica","bold"); doc.setTextColor(26,58,42);
+  doc.text(fmt(g("res-mercado")||g("valor-mercado")),W-mg-4,y+19,{align:"right"});
+  y+=24;
+  // Criterio
+  if(g("criterio")){
+    y=chkY(y,16);
+    doc.setFontSize(7); doc.setFont("helvetica","normal"); doc.setTextColor(60,60,60);
+    var crLines=doc.splitTextToSize(g("criterio"),cw-4);
+    doc.text(crLines,mg+2,y); y+=crLines.length*4+4;
+  }
+  // Conclusión — caja dorada
+  y=chkY(y,32);
+  doc.setFillColor(253,248,236); doc.roundedRect(mg,y,cw,30,2,2,"F");
+  doc.setDrawColor(201,162,39); doc.setLineWidth(0.8); doc.roundedRect(mg,y,cw,30,2,2,"S");
+  doc.setTextColor(26,58,42); doc.setFontSize(8); doc.setFont("helvetica","bold");
+  doc.text("VALOR COMERCIAL EN PESOS:",mg+4,y+8);
+  doc.setFontSize(16); doc.setFont("helvetica","bold");
+  doc.text(fmt(g("valor-comercial-final")),mg+4,y+17);
+  doc.setFontSize(7.5); doc.setFont("helvetica","normal"); doc.setTextColor(80,80,80);
+  if(g("valor-letra")){
+    var letraLines=doc.splitTextToSize(g("valor-letra"),cw-8);
+    doc.text(letraLines,mg+4,y+23);
+  }
+  var fa=g("fecha-avaluo")||hoy;
+  doc.setTextColor(26,58,42); doc.setFontSize(7); doc.setFont("helvetica","bold");
+  doc.text("Esta cantidad representa el Valor Comercial del inmueble al día: "+fa,mg+4,y+29);
+  y+=34;
+  // Firma
+  y=chkY(y,30);
+  doc.setDrawColor(26,58,42); doc.setLineWidth(0.3);
+  doc.line(mg+30,y+18,mg+cw/2-10,y+18);
+  doc.setTextColor(26,58,42); doc.setFontSize(8); doc.setFont("helvetica","bold");
+  doc.text(DESPACHO,mg+30,y+22);
+  doc.setFont("helvetica","normal"); doc.setFontSize(7); doc.setTextColor(80,80,80);
+  doc.text(MAESTRIA,mg+30,y+27);
+  doc.text(CEDULA,mg+30,y+31);
+  y+=36;
+
+  // ─── SECCIÓN 12: REPORTE FOTOGRÁFICO ──────────────────────────────────────
+  var fotoIds=["f1","f2","f3","f4","f5","f6"];
+  var hayFotos=fotoIds.some(function(id){return fotoDataURLs[id]!==null;});
+  if(hayFotos){
+    y=nuevaPagina();
+    doc.setFillColor(26,58,42); doc.rect(mg,y,cw,8,"F");
+    doc.setTextColor(255,255,255); doc.setFontSize(9); doc.setFont("helvetica","bold");
+    doc.text("12. REPORTE FOTOGRÁFICO",mg+4,y+5.5); y+=12;
+    var fotosEnPag=[];
+    fotoIds.forEach(function(id){if(fotoDataURLs[id])fotosEnPag.push({id:id,url:fotoDataURLs[id],lbl:fotoLabels[id]});});
+    for(var fi=0;fi<fotosEnPag.length;fi+=2){
+      y=chkY(y,65);
+      var f1=fotosEnPag[fi], f2=fotosEnPag[fi+1];
+      var hw=(cw-4)/2;
+      var img1=new Image(); img1.src=f1.url;
+      var r1=Math.min(hw/img1.width,55/img1.height);
+      try{doc.addImage(f1.url,"JPEG",mg,y,img1.width*r1,img1.height*r1);}catch(e){}
+      doc.setFontSize(6.5);doc.setFont("helvetica","normal");doc.setTextColor(80,80,80);
+      doc.text(f1.lbl.toUpperCase(),mg,y+img1.height*r1+4);
+      if(f2){
+        var img2=new Image(); img2.src=f2.url;
+        var r2=Math.min(hw/img2.width,55/img2.height);
+        try{doc.addImage(f2.url,"JPEG",mg+hw+4,y,img2.width*r2,img2.height*r2);}catch(e){}
+        doc.text(f2.lbl.toUpperCase(),mg+hw+4,y+img2.height*r2+4);
+      }
+      y+=65;
+    }
+  }
+
+  // Pie en todas las páginas
+  for(var p=1;p<=pg;p++){
+    doc.setPage(p);
+    doc.setDrawColor(201,162,39); doc.setLineWidth(0.3); doc.line(mg,H-8,W-mg,H-8);
+    doc.setFontSize(6.5); doc.setTextColor(120,120,120); doc.setFont("helvetica","normal");
+    doc.text(DESPACHO+" · "+CEDULA+" · WhatsApp "+TELEFONO+" · "+DOMICILIO,mg,H-5);
+    doc.text("Pág. "+p+" / "+pg,W-mg,H-5,{align:"right"});
+  }
+
+  doc.save("Avaluo_"+((g("solicitante")||"Cliente").split(" ")[0])+"_"+new Date().toISOString().slice(0,10)+".pdf");
+}
+</script>
+</body>
+</html>
