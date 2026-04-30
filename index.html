@@ -550,21 +550,39 @@ function recopilarDatos(){
   return datos;
 }
 
-function exportarJSON(){
+async function exportarJSON(){
   var datos = recopilarDatos();
   var json = JSON.stringify(datos, null, 2);
-  var blob = new Blob([json], {type:"application/json"});
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement("a");
   var solicitante = (document.getElementById("solicitante")||{}).value||"avaluo";
   var fecha = new Date().toISOString().slice(0,10);
-  a.href = url;
-  a.download = "Avaluo_"+solicitante.split(" ")[0]+"_"+fecha+".json";
-  document.body.appendChild(a);
-  a.click();
+  var nombreSugerido = "Avaluo_"+solicitante.split(" ")[0]+"_"+fecha+".json";
+
+  // Intentar con File System Access API (Chrome/Edge — permite elegir carpeta)
+  if(window.showSaveFilePicker){
+    try{
+      var handle = await window.showSaveFilePicker({
+        suggestedName: nombreSugerido,
+        types:[{description:"Archivo de avalúo",accept:{"application/json":[".json"]}}]
+      });
+      var writable = await handle.createWritable();
+      await writable.write(json);
+      await writable.close();
+      mostrarEstado("✓ Guardado en la ubicación que elegiste");
+      return;
+    }catch(e){
+      if(e.name==="AbortError") return; // Usuario canceló
+      // Si falla, usar método clásico
+    }
+  }
+  // Fallback para Safari / Firefox
+  var blob = new Blob([json],{type:"application/json"});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url; a.download = nombreSugerido;
+  document.body.appendChild(a); a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  mostrarEstado("✓ Archivo guardado en tu computadora");
+  mostrarEstado("✓ Archivo guardado en Descargas");
 }
 
 function importarJSON(input){
