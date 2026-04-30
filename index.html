@@ -83,6 +83,13 @@ textarea{resize:vertical;min-height:60px;}
   </div>
 </header>
 
+<div style="background:var(--accent2);padding:6px 20px;position:sticky;top:72px;z-index:99;display:flex;justify-content:space-between;align-items:center;">
+  <div style="max-width:700px;margin:0 auto;width:100%;display:flex;justify-content:space-between;align-items:center;">
+    <span id="save-status" style="font-size:11px;color:rgba(255,255,255,0.8);transition:opacity 1s;opacity:0;">✓ Guardado</span>
+    <button onclick="borrarDatos()" style="font-size:10px;color:rgba(255,255,255,0.7);background:none;border:1px solid rgba(255,255,255,0.25);border-radius:var(--radius-sm);padding:2px 10px;cursor:pointer;">Nuevo avalúo</button>
+  </div>
+</div>
+
 <main class="main">
 
 <!-- 1. ANTECEDENTES -->
@@ -524,6 +531,61 @@ function calcValorComercial(){
   document.getElementById("valor-comercial-display").textContent=fmt(prom);
   if(!g("valor-comercial-final")) document.getElementById("valor-comercial-final").value=prom||"";
   actualizarLetra();
+}
+
+// ─── GUARDADO AUTOMÁTICO ─────────────────────────────────────────────────────
+var STORAGE_KEY = "avaluo_chapa_v1";
+var guardadoTimeout = null;
+
+function guardarDatos(){
+  var datos = {};
+  // Inputs y selects
+  document.querySelectorAll("input[type=text],input[type=number],select,textarea").forEach(function(el){
+    if(el.id) datos[el.id] = el.value;
+  });
+  // Checkboxes
+  for(var i=1;i<=19;i++){
+    var cb=document.getElementById("s"+i);
+    if(cb) datos["s"+i]=cb.checked;
+  }
+  datos["_guardado"] = new Date().toLocaleString("es-MX");
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(datos));
+  mostrarEstado("✓ Guardado automáticamente");
+}
+
+function cargarDatos(){
+  var raw = localStorage.getItem(STORAGE_KEY);
+  if(!raw) return;
+  try{
+    var datos = JSON.parse(raw);
+    Object.keys(datos).forEach(function(k){
+      if(k==="_guardado") return;
+      var el = document.getElementById(k);
+      if(!el) return;
+      if(el.type==="checkbox") el.checked = datos[k];
+      else el.value = datos[k];
+    });
+    mostrarEstado("Datos restaurados del " + datos["_guardado"]);
+  }catch(e){}
+}
+
+function borrarDatos(){
+  if(!confirm("¿Borrar todos los datos guardados y empezar desde cero?")) return;
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+}
+
+function mostrarEstado(msg){
+  var el = document.getElementById("save-status");
+  if(!el) return;
+  el.textContent = msg;
+  el.style.opacity = "1";
+  setTimeout(function(){el.style.opacity="0";}, 3000);
+}
+
+function autoGuardar(){
+  clearTimeout(guardadoTimeout);
+  guardadoTimeout = setTimeout(guardarDatos, 800);
 }
 
 // ─── NÚMERO A LETRAS ─────────────────────────────────────────────────────────
